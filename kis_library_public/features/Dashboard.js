@@ -453,23 +453,6 @@ function calculateRebalancePlan(managedTotal, balance, holdings, targetPortfolio
   let immediateBuyPossible = 0;
   const buyOrders = [];
   
-  // 목표외 보유 종목 전량 매도 주문
-  holdings.forEach(h => {
-    if (targetPortfolio[h.code]) return;
-    const availableToSell = h.ordPsblQty !== undefined ? h.ordPsblQty : h.quantity;
-    if (availableToSell <= 0) return;
-    const price = priceCache[h.code] || h.currentPrice;
-    const rawAmount = availableToSell * price;
-    const actualProceeds = Math.floor(rawAmount * (1 - config.sellFeeRate));
-    totalSellAmount += actualProceeds;
-    sellOrders.push({
-      code: h.code, name: h.name, type: h.type || '기타',
-      quantity: availableToSell, price,
-      amount: rawAmount, actualProceeds,
-      isRedistribute: false, isProfitTaking: false, taScore: 0, sellMult: 1
-    });
-  });
-
   // 1. 현재 즉시 가용 현금 (목표 현금 제외, 단 1주 매수 가능하도록 목표 현금의 20% 여유 허용)
   const cashSlack = targetCashAmount * 0.20;
   let currentTradableCash = Math.max(0, effectiveBuyPower - targetCashAmount + cashSlack);
@@ -632,27 +615,7 @@ function calculateRebalancePlan(managedTotal, balance, holdings, targetPortfolio
     });
   });
 
-  // 목표외 보유 종목 대시보드 표시
-  holdings.forEach(h => {
-    if (targetPortfolio[h.code]) return;
-    const current = (h.evalAmount / managedTotal) * 100;
-    const sellOrder = sellOrders.find(o => String(o.code) === String(h.code));
-    let action = '📉 청산필요';
-    let actionAmount = `전량 ${h.quantity}주`;
-    if (sellOrder) {
-      action = '📉 매도';
-      actionAmount = sellOrder.quantity + '주 (' + String(sellOrder.amount).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원)';
-    }
-    allStocks.push({
-      code: h.code, name: h.name, type: h.type || '기타',
-      quantity: h.quantity, currentPrice: h.currentPrice,
-      evalAmount: h.evalAmount, avgPrice: h.avgPrice || 0,
-      currentRatio: current, targetRatio: 0,
-      expectedRatio: sellOrder ? 0 : current,
-      diff: -current, action, actionQuantity: sellOrder?.quantity || 0,
-      actionPrice: sellOrder?.price || h.currentPrice, actionAmount, needsRebalance: true
-    });
-  });
+
 
   let totalFees = 0;
   sellOrders.forEach(o => totalFees += (o.amount - o.actualProceeds));
