@@ -144,7 +144,19 @@ function openPortfolioManagerDialog() {
 '  el.className="tv "+(Math.abs(t-100)<0.5?"ok":"warn");' +
 '}' +
 
-'function removeStock(i){portfolio.splice(i,1);renderTable();}' +
+'function removeStock(i){' +
+'  var r=portfolio[i];' +
+'  if(r&&r.type!=="현금"&&parseFloat(r.ratio)>0){' +
+'    if(confirm((r.name||r.code)+"을(를) 목표에서 제외합니다.\\n비율을 0%로 바꿔 대시보드에서 매도 후 삭제하거나,\\n[확인]=즉시 삭제 / [취소]=0%로 변경")){' +
+'      portfolio.splice(i,1);' +
+'    } else {' +
+'      portfolio[i]=Object.assign({},r,{ratio:0});' +
+'    }' +
+'  } else {' +
+'    portfolio.splice(i,1);' +
+'  }' +
+'  renderTable();' +
+'}' +
 
 'function showMsg(txt,cls){var el=document.getElementById("searchMsg");el.textContent=txt;el.className="msg "+(cls||"info");}' +
 
