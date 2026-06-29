@@ -429,11 +429,12 @@ function showAIBriefingOutput(content, proposedJson) {
     ratioRows += '<tr style="background:#f8f9fa;font-style:italic;">' + cashCells.join('') + '</tr>';
 
     if (hasAI) {
-      const totalCls = aiTotal === 100 ? 'nc' : 'dn';
-      const totalIcon = aiTotal === 100 ? '✅' : '⚠️';
+      const aiTotalRounded = Math.round(aiTotal * 100) / 100;
+      const totalCls = Math.abs(aiTotalRounded - 100) < 0.01 ? 'nc' : 'dn';
+      const totalIcon = Math.abs(aiTotalRounded - 100) < 0.01 ? '✅' : '⚠️';
       ratioRows += '<tr style="background:#e8f0fe;font-weight:bold;">' +
         '<td class="nm">' + totalIcon + ' 합계</td><td class="num">100.0%</td><td class="num">100.0%</td>' +
-        '<td class="' + totalCls + '">' + aiTotal + '%</td><td class="num">—</td></tr>';
+        '<td class="' + totalCls + '">' + aiTotalRounded.toFixed(2) + '%</td><td class="num">—</td></tr>';
     }
   } catch (e) {
     Logger.log('[BRIEFING] table render error: ' + e.toString());
